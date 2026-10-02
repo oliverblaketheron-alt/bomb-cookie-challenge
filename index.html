@@ -1,0 +1,1072 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bomb Cookie Challenge</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#10131c;
+  --panel:#191e2b;
+  --panel2:#202737;
+  --text:#f4f5f8;
+  --muted:#9ca7bc;
+  --blue:#348cff;
+  --blue2:#1764c8;
+  --red:#ff575d;
+  --red2:#d93648;
+  --gold:#ffcf61;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  overflow-x:hidden;
+}
+button{font-family:inherit;font-weight:800;cursor:pointer}
+button:disabled{cursor:default}
+#app{max-width:1000px;margin:auto;padding:22px}
+.hidden{display:none!important}
+
+/* MINIMAL START MENU */
+#startScreen{
+  min-height:92vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.menu-card{
+  width:100%;
+  max-width:560px;
+  text-align:center;
+  padding:34px 25px;
+  background:var(--panel);
+  border:1px solid #ffffff12;
+  border-radius:22px;
+}
+.logo{
+  font-size:clamp(38px,7vw,62px);
+  font-weight:1000;
+  letter-spacing:-2px;
+  line-height:1.02;
+}
+.bomb-word{color:var(--red)}
+.cookie-word{color:var(--gold)}
+.menu-emojis{
+  display:flex;
+  justify-content:center;
+  gap:24px;
+  margin:24px 0;
+  font-size:60px;
+}
+.menu-emojis span{
+  opacity:1!important;
+  filter:none!important;
+  animation:float 2.4s ease-in-out infinite alternate;
+}
+.menu-emojis span:nth-child(2){animation-delay:.4s}
+.menu-emojis span:nth-child(3){animation-delay:.8s}
+@keyframes float{
+  from{transform:translateY(0)}
+  to{transform:translateY(-7px)}
+}
+.subtitle{
+  color:var(--muted);
+  max-width:430px;
+  margin:16px auto 24px;
+  line-height:1.6;
+  font-size:14px;
+}
+.rules{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  text-align:left;
+  margin:24px 0;
+}
+.rule{
+  padding:13px;
+  background:#ffffff05;
+  border:1px solid #ffffff0d;
+  border-radius:12px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.rule strong{
+  display:block;
+  color:var(--text);
+  margin-bottom:5px;
+  font-size:13px;
+}
+.primary{
+  border:0;
+  border-radius:11px;
+  padding:14px 24px;
+  font-size:15px;
+  color:#151820;
+  background:var(--gold);
+  transition:transform .15s,background .15s;
+}
+.primary:hover{background:#ffdf8a;transform:translateY(-2px)}
+.primary:active{transform:scale(.97)}
+.secondary{
+  border:1px solid #ffffff17;
+  border-radius:10px;
+  padding:11px 16px;
+  background:var(--panel2);
+  color:var(--text);
+  font-size:13px;
+}
+.secondary:hover{background:#2b3549}
+
+/* GAME HEADER */
+.game-title{
+  text-align:center;
+  font-size:clamp(25px,5vw,38px);
+  font-weight:1000;
+  letter-spacing:-1.5px;
+  margin:4px 0 20px;
+}
+.hud{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:10px;
+  max-width:850px;
+  margin:0 auto 12px;
+}
+.player-card,.timer-card{
+  padding:11px;
+  background:var(--panel);
+  border:1px solid #ffffff12;
+  border-radius:13px;
+  text-align:center;
+}
+.player-card.player{border-top:2px solid var(--blue)}
+.player-card.bot{border-top:2px solid var(--red)}
+.player-name{font-weight:900;font-size:13px;margin-bottom:6px}
+.lives{font-size:19px;white-space:nowrap}
+.score{font-size:11px;color:var(--muted);margin-top:5px}
+.timer-card{
+  min-width:90px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+.timer-label{
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.3px;
+  color:var(--muted);
+}
+#timer{font-size:31px;font-weight:1000;font-variant-numeric:tabular-nums}
+#timer.danger{color:var(--red);animation:timerPulse .7s infinite alternate}
+@keyframes timerPulse{to{transform:scale(1.08)}}
+.phase-banner{
+  max-width:850px;
+  margin:12px auto;
+  padding:13px;
+  text-align:center;
+  background:var(--panel);
+  border:1px solid #ffffff0d;
+  border-radius:12px;
+  line-height:1.5;
+}
+#phaseTitle{display:block;font-weight:900;font-size:16px;margin-bottom:4px}
+#phaseDescription{font-size:12px;color:var(--muted)}
+
+/* BOARDS */
+.arenas{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  max-width:850px;
+  margin:16px auto;
+}
+.arena{
+  min-width:0;
+  padding:15px;
+  background:var(--panel);
+  border:1px solid #ffffff12;
+  border-radius:16px;
+}
+.blue-arena{border-top:2px solid var(--blue)}
+.red-arena{border-top:2px solid var(--red)}
+.arena-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:7px;
+}
+.arena-heading h2{font-size:16px;margin:0}
+.blue-arena h2{color:#75b6ff}
+.red-arena h2{color:#ff858a}
+.arena-tag{
+  padding:4px 7px;
+  border-radius:6px;
+  background:#ffffff08;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.arena-description{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+  min-height:35px;
+  margin:9px 0 12px;
+}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cell{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  aspect-ratio:1;
+  min-width:0;
+  padding:0;
+  overflow:hidden;
+  border-radius:11px;
+  border:1px solid #ffffff25;
+  transition:border-color .12s,transform .12s,box-shadow .12s;
+  isolation:isolate;
+}
+.blue-arena .cell{background:var(--blue2)}
+.red-arena .cell{background:var(--red2)}
+.blue-arena .cell:enabled:hover{background:#2479e8}
+.red-arena .cell:enabled:hover{background:#e74553}
+.cell:enabled:hover{border-color:#ffffffa0}
+.cell:enabled:active{transform:scale(.96)}
+.cell:disabled{cursor:default}
+.cell-number{
+  position:absolute;
+  left:5px;
+  top:4px;
+  font-size:9px;
+  color:#ffffff70;
+  pointer-events:none;
+}
+.emoji{
+  position:relative;
+  z-index:2;
+  display:block;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  font-size:clamp(32px,5.5vw,52px);
+  line-height:1;
+  pointer-events:none;
+  user-select:none;
+  transform-origin:center;
+  animation:cookiePop .18s ease-out both;
+}
+@keyframes cookiePop{
+  0%{transform:scale(.65)}
+  75%{transform:scale(1.12)}
+  100%{transform:scale(1)}
+}
+/* Never animate opacity. Emojis remain fully opaque. */
+.cell,.cell *,.emoji,.menu-emojis span,#resultEmoji,.legend-emoji{
+  opacity:1!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+  mix-blend-mode:normal!important;
+}
+.cell.empty .emoji{display:none}
+.arena-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+  margin-top:11px;
+  font-size:11px;
+  color:var(--muted);
+}
+.status-pill{
+  padding:4px 7px;
+  background:#ffffff08;
+  border-radius:6px;
+  font-size:10px;
+  font-weight:900;
+}
+
+/* MESSAGE AREA */
+.bottom-panel{
+  max-width:850px;
+  margin:16px auto;
+  padding:14px;
+  background:var(--panel);
+  border:1px solid #ffffff0d;
+  border-radius:13px;
+}
+#gameMessage{
+  text-align:center;
+  min-height:22px;
+  line-height:1.5;
+  color:#dce3f3;
+  font-size:13px;
+}
+.action-row{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:12px}
+.legend{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:15px;
+  color:var(--muted);
+  font-size:11px;
+}
+.legend-emoji{font-size:16px}
+
+/* WIN / LOSE OVERLAY */
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:18px;
+  background:#090c14eF;
+}
+.result-card{
+  position:relative;
+  z-index:22;
+  width:100%;
+  max-width:420px;
+  padding:28px 22px;
+  text-align:center;
+  background:var(--panel);
+  border:1px solid #ffffff20;
+  border-radius:20px;
+  animation:resultEnter .35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes resultEnter{
+  from{transform:translateY(16px) scale(.94)}
+  to{transform:translateY(0) scale(1)}
+}
+#resultEmoji{font-size:70px;line-height:1.3}
+#resultTitle{font-size:29px;font-weight:1000;margin:10px 0}
+#resultDescription{color:var(--muted);font-size:13px;line-height:1.7;white-space:pre-line;margin-bottom:22px}
+
+/* VISUAL EFFECT LAYERS */
+#effectLayer{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  pointer-events:none;
+  overflow:hidden;
+}
+.confetti{
+  position:absolute;
+  top:-18px;
+  left:var(--x);
+  width:var(--w);
+  height:var(--h);
+  background:var(--color);
+  border-radius:2px;
+  animation:confettiFall var(--duration) cubic-bezier(.2,.6,.4,1) forwards;
+  transform:rotate(var(--rotation));
+}
+@keyframes confettiFall{
+  0%{transform:translate3d(0,-20px,0) rotate(0deg)}
+  100%{transform:translate3d(var(--drift),110vh,0) rotate(var(--spin))}
+}
+.sparkle{
+  position:absolute;
+  font-size:24px;
+  animation:sparkleRise .75s ease-out forwards;
+}
+@keyframes sparkleRise{
+  0%{transform:translateY(8px) scale(.5) rotate(-15deg);opacity:1}
+  100%{transform:translateY(-35px) scale(1.2) rotate(15deg);opacity:0}
+}
+.shake{animation:screenShake .32s ease-out}
+@keyframes screenShake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(3px)}
+}
+.bomb-flash{animation:bombFlash .45s ease-out}
+@keyframes bombFlash{
+  0%{box-shadow:inset 0 0 0 0 #ffdf6b}
+  35%{box-shadow:inset 0 0 0 5px #ffdf6b}
+  100%{box-shadow:inset 0 0 0 0 #ffdf6b}
+}
+
+@media(max-width:650px){
+  #app{padding:10px}
+  .menu-card{padding:25px 14px}
+  .rules{grid-template-columns:1fr;gap:8px}
+  .arenas{grid-template-columns:1fr;gap:12px}
+  .arena{padding:13px}
+  .hud{gap:5px}
+  .player-card{padding:9px 4px}
+  .player-name{font-size:12px}
+  .lives{font-size:16px}
+  .timer-card{min-width:70px;padding:7px}
+  #timer{font-size:27px}
+  .cell .emoji{font-size:clamp(36px,10vw,55px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu-emojis span,.cell .emoji,#timer{animation:none!important}
+}
+</style>
+</head>
+
+<body>
+<div id="effectLayer"></div>
+
+<div id="app">
+<section id="startScreen">
+  <div class="menu-card">
+    <div class="logo"><span class="bomb-word">BOMB</span><br>COOKIE<br><span class="cookie-word">CHALLENGE</span></div>
+    <div class="menu-emojis"><span>💣</span><span>🍪</span><span>💣</span></div>
+    <p class="subtitle">A cookie-eating showdown! Hide bombs in your opponent's cookies, then hope you don't bite into one yourself.</p>
+    <div class="rules">
+      <div class="rule"><strong>🔵 YOUR COOKIES</strong>Choose a blue cookie each turn. The bot secretly hides bombs here.</div>
+      <div class="rule"><strong>🔴 BOT'S COOKIES</strong>Place your bombs on the red board. The bot eats from this board.</div>
+      <div class="rule"><strong>⏱️ TIME LIMITS</strong>You have 25 seconds to set up and 15 seconds per turn.</div>
+      <div class="rule"><strong>❤️ STAY ALIVE</strong>You and the bot each start with 3 lives.</div>
+    </div>
+    <button id="startButton" class="primary">PLAY NOW ▶</button>
+  </div>
+</section>
+
+<section id="gameScreen" class="hidden">
+  <div class="game-title"><span class="bomb-word">BOMB</span> COOKIE <span class="cookie-word">CHALLENGE</span></div>
+
+  <div class="hud">
+    <div class="player-card player">
+      <div class="player-name">🧑 YOU</div>
+      <div id="playerLives" class="lives">❤️❤️❤️</div>
+      <div class="score">Cookies: <strong id="playerScore">0</strong></div>
+    </div>
+    <div class="timer-card">
+      <div class="timer-label">TIME LEFT</div>
+      <div id="timer">25</div>
+    </div>
+    <div class="player-card bot">
+      <div class="player-name">🤖 BOT</div>
+      <div id="botLives" class="lives">❤️❤️❤️</div>
+      <div class="score">Cookies: <strong id="botScore">0</strong></div>
+    </div>
+  </div>
+
+  <div class="phase-banner">
+    <span id="phaseTitle">PLACE YOUR BOMBS!</span>
+    <span id="phaseDescription">Click cookies on the red board.</span>
+  </div>
+
+  <main class="arenas">
+    <section class="arena blue-arena">
+      <div class="arena-heading"><h2>🔵 Your Cookies</h2><span class="arena-tag">YOUR BOARD</span></div>
+      <p class="arena-description">Choose a cookie to eat. The bot has secretly hidden bombs here!</p>
+      <div id="blueGrid" class="grid"></div>
+      <div class="arena-footer"><span>Remaining: <strong id="blueRemaining">9</strong></span><span id="blueStatus" class="status-pill">WAITING</span></div>
+    </section>
+
+    <section class="arena red-arena">
+      <div class="arena-heading"><h2>🔴 Bot's Cookies</h2><span class="arena-tag">BOT BOARD</span></div>
+      <p class="arena-description">Place your bombs here. The bot will choose cookies from this board.</p>
+      <div id="redGrid" class="grid"></div>
+      <div class="arena-footer"><span>Remaining: <strong id="redRemaining">9</strong></span><span id="redStatus" class="status-pill">SETUP</span></div>
+    </section>
+  </main>
+
+  <section class="bottom-panel">
+    <div id="gameMessage" aria-live="polite">Place your bombs on the red board!</div>
+    <div class="action-row">
+      <button id="finishSetupButton" class="primary">FINISH SETUP ✓</button>
+      <button id="restartButton" class="secondary">↻ Restart Game</button>
+    </div>
+    <div class="legend">
+      <span><span class="legend-emoji">🍪</span> Cookie</span>
+      <span><span class="legend-emoji">💣</span> Bomb</span>
+      <span>🔵 Your board</span>
+      <span>🔴 Bot's board</span>
+    </div>
+  </section>
+</section>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card">
+    <div id="resultEmoji">🏆</div>
+    <div id="resultTitle">GAME OVER</div>
+    <div id="resultDescription"></div>
+    <button id="playAgainButton" class="primary">PLAY AGAIN ↻</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const TOTAL = 9;
+const MAX_BOMBS = 3;
+const SETUP_TIME = 25;
+const TURN_TIME = 15;
+
+let blue = [];
+let red = [];
+let playerBombs = new Set();
+let botBombs = new Set();
+let playerLives = 3;
+let botLives = 3;
+let playerScore = 0;
+let botScore = 0;
+let phase = "menu";
+let seconds = SETUP_TIME;
+let timerId = null;
+let botTimeout = null;
+let transitionTimeout = null;
+let gameId = 0;
+let audio = null;
+let effectId = 0;
+
+function sound(freq=600,duration=.1,type="sine",volume=.05){
+  try{
+    if(!audio){
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return;
+      audio=new AC();
+    }
+    if(audio.state==="suspended")audio.resume();
+    const osc=audio.createOscillator();
+    const gain=audio.createGain();
+    osc.type=type;
+    osc.frequency.value=freq;
+    gain.gain.setValueAtTime(volume,audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+    osc.connect(gain);
+    gain.connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime+duration);
+  }catch(e){}
+}
+function cookieSound(){
+  sound(660,.09);
+  setTimeout(()=>sound(880,.1),55);
+}
+function bombSound(){
+  sound(110,.3,"sawtooth",.08);
+  setTimeout(()=>sound(70,.4,"square",.05),65);
+}
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+  return array;
+}
+function clearScheduled(){
+  if(timerId!==null)clearInterval(timerId);
+  if(botTimeout!==null)clearTimeout(botTimeout);
+  if(transitionTimeout!==null)clearTimeout(transitionTimeout);
+  timerId=botTimeout=transitionTimeout=null;
+}
+
+/* EFFECTS */
+
+function clearEffects(){
+  effectId++;
+  $("effectLayer").replaceChildren();
+}
+function confetti(){
+  clearEffects();
+  const thisEffect=effectId;
+  const colors=["#ff575d","#ffcf61","#348cff","#72e3a2","#ffffff","#d58aff"];
+  const layer=$("effectLayer");
+
+  for(let i=0;i<110;i++){
+    const piece=document.createElement("span");
+    piece.className="confetti";
+    piece.style.setProperty("--x",Math.random()*100+"%");
+    piece.style.setProperty("--w",(5+Math.random()*7)+"px");
+    piece.style.setProperty("--h",(8+Math.random()*10)+"px");
+    piece.style.setProperty("--color",colors[Math.floor(Math.random()*colors.length)]);
+    piece.style.setProperty("--duration",(2.1+Math.random()*2.4)+"s");
+    piece.style.setProperty("--drift",((Math.random()-.5)*230)+"px");
+    piece.style.setProperty("--rotation",Math.random()*180+"deg");
+    piece.style.setProperty("--spin",((Math.random()-.5)*1000)+"deg");
+    piece.style.animationDelay=(Math.random()*.7)+"s";
+    layer.appendChild(piece);
+  }
+
+  setTimeout(()=>{
+    if(effectId===thisEffect)layer.replaceChildren();
+  },5500);
+}
+function sparklesAt(element,emoji="✨"){
+  const rect=element.getBoundingClientRect();
+  const layer=$("effectLayer");
+  for(let i=0;i<4;i++){
+    const spark=document.createElement("span");
+    spark.className="sparkle";
+    spark.textContent=emoji;
+    spark.style.left=(rect.left+rect.width*(.25+Math.random()*.5))+"px";
+    spark.style.top=(rect.top+rect.height*(.25+Math.random()*.5))+"px";
+    layer.appendChild(spark);
+    setTimeout(()=>spark.remove(),850);
+  }
+}
+function bombEffect(cell){
+  bombSound();
+  cell.button.classList.remove("bomb-flash");
+  void cell.button.offsetWidth;
+  cell.button.classList.add("bomb-flash");
+
+  $("app").classList.remove("shake");
+  void $("app").offsetWidth;
+  $("app").classList.add("shake");
+
+  setTimeout(()=>$("app").classList.remove("shake"),350);
+}
+function winEffect(){
+  sound(523,.16);
+  setTimeout(()=>sound(659,.16),130);
+  setTimeout(()=>sound(784,.16),260);
+  setTimeout(()=>sound(1047,.3),390);
+  confetti();
+}
+
+function setEmoji(cell,text){
+  cell.emoji.textContent=text;
+  cell.emoji.style.setProperty("opacity","1","important");
+  cell.emoji.style.setProperty("filter","none","important");
+  cell.emoji.style.setProperty("visibility","visible","important");
+  cell.button.style.setProperty("opacity","1","important");
+  cell.button.style.setProperty("filter","none","important");
+  cell.button.classList.toggle("empty",text==="");
+}
+function makeCell(index,boardName){
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="cell";
+  button.setAttribute("aria-label",boardName+" cookie "+(index+1));
+
+  const number=document.createElement("span");
+  number.className="cell-number";
+  number.textContent=index+1;
+
+  const emoji=document.createElement("span");
+  emoji.className="emoji";
+  emoji.textContent="🍪";
+  emoji.style.setProperty("opacity","1","important");
+
+  button.append(number,emoji);
+
+  const cell={index,boardName,button,emoji,cookie:true,bomb:false,revealed:false};
+  button.addEventListener("click",()=>onCellClick(cell));
+  return cell;
+}
+function buildBoards(){
+  $("blueGrid").replaceChildren();
+  $("redGrid").replaceChildren();
+  blue=[];
+  red=[];
+  for(let i=0;i<TOTAL;i++){
+    const b=makeCell(i,"blue");
+    const r=makeCell(i,"red");
+    blue.push(b);
+    red.push(r);
+    $("blueGrid").appendChild(b.button);
+    $("redGrid").appendChild(r.button);
+  }
+}
+function renderCell(cell){
+  // Keep triggered blue bombs visible, even after their cookies are eaten.
+  if(cell.boardName==="blue"&&cell.revealed&&cell.bomb){
+    setEmoji(cell,"💣");
+    return;
+  }
+
+  if(!cell.cookie){
+    setEmoji(cell,"");
+    return;
+  }
+
+  // Player's bombs are visible on the red board during setup.
+  if(cell.boardName==="red"&&playerBombs.has(cell.index)){
+    setEmoji(cell,"💣");
+  }else{
+    // Bot bombs remain hidden as cookies on the blue board.
+    setEmoji(cell,"🍪");
+  }
+}
+function render(){
+  blue.forEach(renderCell);
+  red.forEach(renderCell);
+  $("blueRemaining").textContent=blue.filter(c=>c.cookie).length;
+  $("redRemaining").textContent=red.filter(c=>c.cookie).length;
+  updateAvailability();
+  enforceOpacity();
+}
+function updateAvailability(){
+  blue.forEach(c=>{
+    c.button.disabled=!(phase==="playerTurn"&&c.cookie&&!c.revealed);
+  });
+  red.forEach(c=>{
+    c.button.disabled=!(phase==="setup"&&c.cookie&&!c.revealed);
+  });
+
+  $("finishSetupButton").classList.toggle("hidden",phase!=="setup");
+
+  $("blueStatus").textContent=
+    phase==="playerTurn"?"YOUR TURN":
+    phase==="botTurn"?"BOT THINKING":
+    phase==="gameover"?"FINISHED":"WAITING";
+
+  $("redStatus").textContent=
+    phase==="setup"?`${playerBombs.size}/${MAX_BOMBS} BOMBS`:
+    phase==="botTurn"?"BOT'S TURN":
+    phase==="gameover"?"FINISHED":"READY";
+}
+function updateHUD(){
+  $("playerLives").textContent=
+    "❤️".repeat(Math.max(0,playerLives))+
+    "🖤".repeat(Math.max(0,3-playerLives));
+  $("botLives").textContent=
+    "❤️".repeat(Math.max(0,botLives))+
+    "🖤".repeat(Math.max(0,3-botLives));
+  $("playerScore").textContent=playerScore;
+  $("botScore").textContent=botScore;
+}
+function setPhase(title,description,message){
+  $("phaseTitle").textContent=title;
+  $("phaseDescription").textContent=description;
+  if(message!==undefined)$("gameMessage").textContent=message;
+}
+function startTimer(duration,id){
+  if(timerId!==null)clearInterval(timerId);
+  seconds=duration;
+  showTimer();
+
+  timerId=setInterval(()=>{
+    if(id!==gameId||phase==="gameover"){
+      clearInterval(timerId);
+      timerId=null;
+      return;
+    }
+
+    seconds=Math.max(0,seconds-1);
+    showTimer();
+
+    if(seconds<=5&&seconds>0)sound(720,.04,"sine",.018);
+
+    if(seconds<=0){
+      clearInterval(timerId);
+      timerId=null;
+      timerExpired(id);
+    }
+  },1000);
+}
+function showTimer(){
+  $("timer").textContent=Math.max(0,seconds);
+  $("timer").classList.toggle("danger",seconds<=5);
+}
+function timerExpired(id){
+  if(id!==gameId||phase==="gameover")return;
+
+  if(phase==="setup"){
+    finishSetup();
+  }else if(phase==="playerTurn"){
+    setPhase("🤖 BOT'S TURN","Your time ran out.","⏰ Time's up! You lost your turn.");
+    beginBotTurn(id);
+  }else if(phase==="botTurn"){
+    beginPlayerTurn(id);
+  }
+}
+
+/* START AND RESET */
+
+function startGame(){
+  gameId++;
+  clearScheduled();
+  clearEffects();
+
+  playerBombs=new Set();
+  botBombs=new Set();
+  playerLives=3;
+  botLives=3;
+  playerScore=0;
+  botScore=0;
+  phase="setup";
+
+  $("startScreen").classList.add("hidden");
+  $("gameScreen").classList.remove("hidden");
+  $("resultOverlay").classList.add("hidden");
+
+  buildBoards();
+
+  shuffle(Array.from({length:TOTAL},(_,i)=>i))
+    .slice(0,MAX_BOMBS)
+    .forEach(i=>{
+      botBombs.add(i);
+      blue[i].bomb=true;
+    });
+
+  updateHUD();
+  render();
+
+  setPhase(
+    "💣 PLACE YOUR BOMBS!",
+    "Click cookies on the red board to hide up to 3 bombs. You have 25 seconds.",
+    "Place your bombs on the bot's red board."
+  );
+
+  $("finishSetupButton").textContent="FINISH SETUP ✓";
+  startTimer(SETUP_TIME,gameId);
+}
+
+/* BOMB SETUP */
+
+function onCellClick(cell){
+  if(phase==="setup"&&cell.boardName==="red"){
+    if(playerBombs.has(cell.index)){
+      playerBombs.delete(cell.index);
+      cell.bomb=false;
+      $("gameMessage").textContent="Bomb removed. Choose another cookie to move it.";
+      sound(350,.08,"triangle");
+    }else{
+      if(playerBombs.size>=MAX_BOMBS){
+        $("gameMessage").textContent="You already placed 3 bombs! Click a bomb to remove it first.";
+        return;
+      }
+
+      playerBombs.add(cell.index);
+      cell.bomb=true;
+      $("gameMessage").textContent=`💣 Bomb placed! ${playerBombs.size}/${MAX_BOMBS} bombs placed.`;
+      sound(440,.08,"triangle");
+      sparklesAt(cell.button,"✨");
+    }
+    render();
+    return;
+  }
+
+  if(phase==="playerTurn"&&cell.boardName==="blue"){
+    playerChoose(cell);
+  }
+}
+function finishSetup(){
+  if(phase!=="setup")return;
+  if(timerId!==null)clearInterval(timerId);
+  timerId=null;
+
+  const remaining=shuffle(
+    red.filter(c=>c.cookie&&!playerBombs.has(c.index))
+  );
+
+  while(playerBombs.size<MAX_BOMBS&&remaining.length){
+    const cell=remaining.pop();
+    playerBombs.add(cell.index);
+    cell.bomb=true;
+  }
+
+  phase="playerTurn";
+  render();
+  setPhase(
+    "🍪 YOUR TURN!",
+    "Choose one cookie on the blue board. You have 15 seconds.",
+    "Bombs are hidden! Pick a blue cookie carefully."
+  );
+  startTimer(TURN_TIME,gameId);
+}
+
+/* PLAYER TURN */
+
+function playerChoose(cell){
+  if(phase!=="playerTurn"||!cell.cookie||cell.revealed)return;
+
+  if(timerId!==null)clearInterval(timerId);
+  timerId=null;
+
+  cell.cookie=false;
+  cell.revealed=true;
+
+  if(cell.bomb){
+    playerLives--;
+    // Reveal the bomb permanently; do not hide it during rendering.
+    setEmoji(cell,"💣");
+    bombEffect(cell);
+    $("gameMessage").textContent="💥 BOOM! You picked a cookie with a hidden bomb!";
+  }else{
+    playerScore++;
+    setEmoji(cell,"");
+    cookieSound();
+    sparklesAt(cell.button,"✨");
+    $("gameMessage").textContent="🍪 Yummy! You found a safe cookie.";
+  }
+
+  updateHUD();
+  render();
+
+  if(checkGameOver())return;
+
+  phase="botTurn";
+  render();
+
+  const id=gameId;
+  transitionTimeout=setTimeout(()=>beginBotTurn(id),800);
+}
+
+/* BOT TURN */
+
+function beginBotTurn(id){
+  if(id!==gameId||phase==="gameover")return;
+
+  phase="botTurn";
+  render();
+  setPhase("🤖 BOT'S TURN!","The bot is choosing a cookie from the red board.","🤖 The bot is thinking...");
+  startTimer(TURN_TIME,id);
+
+  botTimeout=setTimeout(()=>{
+    if(id!==gameId||phase!=="botTurn")return;
+    botChoose(id);
+  },1000+Math.random()*700);
+}
+function botChoose(id){
+  if(id!==gameId||phase!=="botTurn")return;
+
+  if(timerId!==null)clearInterval(timerId);
+  timerId=null;
+
+  if(botTimeout!==null)clearTimeout(botTimeout);
+  botTimeout=null;
+
+  const available=red.filter(c=>c.cookie&&!c.revealed);
+  if(!available.length){
+    beginPlayerTurn(id);
+    return;
+  }
+
+  const cell=available[Math.floor(Math.random()*available.length)];
+  cell.cookie=false;
+  cell.revealed=true;
+
+  if(playerBombs.has(cell.index)){
+    botLives--;
+    // Keep the bot's result hidden: the cookie disappears either way.
+    setEmoji(cell,"");
+    bombEffect(cell);
+    $("gameMessage").textContent="🤖 The bot ate a cookie...";
+  }else{
+    botScore++;
+    setEmoji(cell,"");
+    cookieSound();
+    $("gameMessage").textContent="🤖 The bot ate a cookie...";
+  }
+
+  updateHUD();
+  render();
+
+  if(checkGameOver())return;
+
+  transitionTimeout=setTimeout(()=>beginPlayerTurn(id),850);
+}
+
+/* NEXT PLAYER TURN */
+
+function beginPlayerTurn(id){
+  if(id!==gameId||phase==="gameover")return;
+  if(checkGameOver())return;
+
+  if(!blue.some(c=>c.cookie&&!c.revealed)){
+    endGame("🤝","NO COOKIES LEFT!","There are no cookies remaining on your board.");
+    return;
+  }
+
+  phase="playerTurn";
+  render();
+
+  setPhase(
+    "🍪 YOUR TURN!",
+    "Choose one cookie on the blue board. You have 15 seconds.",
+    "Your turn! Pick a blue cookie."
+  );
+
+  startTimer(TURN_TIME,id);
+}
+
+/* GAME OVER */
+
+function checkGameOver(){
+  if(playerLives<=0&&botLives<=0){
+    endGame("🤝","IT'S A DRAW!","Both players ran out of lives!");
+    return true;
+  }
+  if(playerLives<=0){
+    endGame("🤖","BOT WINS!",`You ran out of lives.\nYour safe cookies: ${playerScore}\nBot safe cookies: ${botScore}`);
+    return true;
+  }
+  if(botLives<=0){
+    endGame("🏆","YOU WIN!",`You defeated the bot!\nYour safe cookies: ${playerScore}\nBot safe cookies: ${botScore}`);
+    return true;
+  }
+  return false;
+}
+function endGame(emoji,title,description){
+  phase="gameover";
+  clearScheduled();
+  render();
+
+  setPhase("GAME OVER",title,description);
+
+  $("resultEmoji").textContent=emoji;
+  $("resultTitle").textContent=title;
+  $("resultDescription").textContent=description;
+  $("resultOverlay").classList.remove("hidden");
+
+  if(title==="YOU WIN!"){
+    winEffect();
+  }else if(title==="BOT WINS!"){
+    bombSound();
+  }else{
+    sound(440,.2,"triangle");
+  }
+}
+
+/* OPACITY LOCK */
+
+function enforceOpacity(){
+  document.querySelectorAll(".emoji,.legend-emoji,#resultEmoji,.menu-emojis span").forEach(el=>{
+    el.style.setProperty("opacity","1","important");
+    el.style.setProperty("filter","none","important");
+    el.style.setProperty("-webkit-filter","none","important");
+    el.style.setProperty("visibility","visible","important");
+    el.style.setProperty("mix-blend-mode","normal","important");
+  });
+
+  document.querySelectorAll(".cell").forEach(el=>{
+    el.style.setProperty("opacity","1","important");
+    el.style.setProperty("filter","none","important");
+  });
+}
+
+/* BUTTONS */
+
+$("startButton").addEventListener("click",()=>{
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(AC&&!audio)audio=new AC();
+    if(audio&&audio.state==="suspended")audio.resume();
+  }catch(e){}
+  startGame();
+});
+$("finishSetupButton").addEventListener("click",finishSetup);
+$("restartButton").addEventListener("click",startGame);
+$("playAgainButton").addEventListener("click",startGame);
+
+setInterval(enforceOpacity,250);
+showTimer();
+</script>
+</body>
+</html>
